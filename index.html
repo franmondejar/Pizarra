@@ -18,7 +18,6 @@
     <script src="./js/marker.js"></script>
 </head>
 
-
 <body>
 
 <button id="enterXR">
@@ -47,9 +46,7 @@
 >
 
 
-    <!-- ==================================================
-         PIZARRA
-         ================================================== -->
+    <!-- PIZARRA -->
 
     <a-entity
         id="board"
@@ -58,9 +55,7 @@
 
         <a-plane
             id="boardSurface"
-
             class="drawable"
-
             width="2.4"
             height="1.35"
 
@@ -109,9 +104,7 @@
     </a-entity>
 
 
-    <!-- ==================================================
-         MANDO DERECHO
-         ================================================== -->
+    <!-- MANDO DERECHO -->
 
     <a-entity
         id="rightHand"
@@ -133,9 +126,7 @@
     ></a-entity>
 
 
-    <!-- ==================================================
-         MANDO IZQUIERDO
-         ================================================== -->
+    <!-- MANDO IZQUIERDO -->
 
     <a-entity
         id="leftHand"
@@ -149,9 +140,7 @@
     ></a-entity>
 
 
-    <!-- ==================================================
-         ILUMINACIÓN
-         ================================================== -->
+    <!-- ILUMINACIÓN -->
 
     <a-light
         type="ambient"
@@ -177,7 +166,6 @@ document
         const scene =
             document.querySelector("a-scene");
 
-
         if (!navigator.xr) {
 
             alert(
@@ -187,14 +175,12 @@ document
             return;
         }
 
-
         try {
 
             const supported =
                 await navigator.xr.isSessionSupported(
                     "immersive-vr"
                 );
-
 
             if (!supported) {
 
@@ -205,9 +191,7 @@ document
                 return;
             }
 
-
             scene.enterVR();
-
 
         } catch (error) {
 
@@ -223,5 +207,4 @@ document
 </script>
 
 </body>
-
 </html>
