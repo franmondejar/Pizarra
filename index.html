@@ -10,13 +10,14 @@
                  maximum-scale=1.0, user-scalable=no"
     >
 
-    <title>Pizarra — Laboratorio V0.0.1</title>
+    <title>Pizarra — Laboratorio V0.0.2</title>
 
     <link rel="stylesheet" href="./css/styles.css">
 
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
     <script src="./js/marker.js"></script>
 </head>
+
 
 <body>
 
@@ -26,6 +27,7 @@
 
 
 <a-scene
+
     webxr="
         referenceSpaceType: local-floor;
         optionalFeatures: local-floor, bounded-floor;
@@ -45,9 +47,9 @@
 >
 
 
-    <!-- ==========================================
+    <!-- ==================================================
          PIZARRA
-         ========================================== -->
+         ================================================== -->
 
     <a-entity
         id="board"
@@ -56,8 +58,12 @@
 
         <a-plane
             id="boardSurface"
+
+            class="drawable"
+
             width="2.4"
             height="1.35"
+
             material="
                 shader: flat;
                 color: #FFFFFF;
@@ -103,58 +109,49 @@
     </a-entity>
 
 
-    <!-- ==========================================
-         CONTROLADOR / ROTULADOR DERECHO
-         ========================================== -->
+    <!-- ==================================================
+         MANDO DERECHO
+         ================================================== -->
 
     <a-entity
         id="rightHand"
-        tracked-controls="
-            hand: right;
-            controller: 0;
+
+        laser-controls="hand: right"
+
+        raycaster="
+            objects: .drawable;
+            far: 10;
+            showLine: true
         "
-        xr-marker
-    >
 
-        <!-- Cuerpo del rotulador -->
+        line="
+            color: #808080;
+            opacity: 0.9
+        "
 
-        <a-cylinder
-            id="markerBody"
-            position="0 0 -0.10"
-            rotation="90 0 0"
-            radius="0.012"
-            height="0.16"
-            color="#E5E7EB"
-        ></a-cylinder>
+        xr-ray-marker
+    ></a-entity>
 
 
-        <!-- Punta -->
-
-        <a-sphere
-            id="markerTip"
-            position="0 0 -0.19"
-            radius="0.014"
-            color="#808080"
-        ></a-sphere>
-
-    </a-entity>
-
-
-    <!-- Controlador izquierdo:
-         solo tracking, sin mano ni rayo -->
+    <!-- ==================================================
+         MANDO IZQUIERDO
+         ================================================== -->
 
     <a-entity
         id="leftHand"
-        tracked-controls="
-            hand: left;
-            controller: 0;
+
+        laser-controls="hand: left"
+
+        raycaster="
+            objects: .nothing;
+            far: 10
         "
     ></a-entity>
 
 
-    <!-- ==========================================
+    <!-- ==================================================
          ILUMINACIÓN
-         ========================================== -->
+         ================================================== -->
 
     <a-light
         type="ambient"
@@ -179,6 +176,7 @@ document
 
         const scene =
             document.querySelector("a-scene");
+
 
         if (!navigator.xr) {
 
@@ -225,4 +223,5 @@ document
 </script>
 
 </body>
+
 </html>
