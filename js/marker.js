@@ -6,7 +6,7 @@ AFRAME.registerComponent("xr-ray-marker", {
         // ESTADO
         // =========================================
 
-        this.triggerPressed = false;
+        this.markerEnabled = false;
         this.isDrawing = false;
 
         this.lastX = null;
@@ -36,33 +36,37 @@ AFRAME.registerComponent("xr-ray-marker", {
 
 
         // =========================================
-        // EVENTOS DEL GATILLO
+        // GATILLO = INTERRUPTOR ON / OFF
         // =========================================
 
         this.el.addEventListener(
             "triggerdown",
             () => {
 
-                this.triggerPressed = true;
-
-                this.setRayColor("#111111");
-
-                console.log("TRIGGER DOWN");
-            }
-        );
+                this.markerEnabled =
+                    !this.markerEnabled;
 
 
-        this.el.addEventListener(
-            "triggerup",
-            () => {
+                if (this.markerEnabled) {
 
-                this.triggerPressed = false;
+                    // ROTULADOR ON
+                    this.setRayColor("#111111");
 
-                this.stopDrawing();
+                    console.log(
+                        "ROTULADOR ON"
+                    );
 
-                this.setRayColor("#808080");
+                } else {
 
-                console.log("TRIGGER UP");
+                    // ROTULADOR OFF
+                    this.setRayColor("#808080");
+
+                    this.stopDrawing();
+
+                    console.log(
+                        "ROTULADOR OFF"
+                    );
+                }
             }
         );
 
@@ -116,7 +120,7 @@ AFRAME.registerComponent("xr-ray-marker", {
 
 
         console.log(
-            "V0.0.2 preparada."
+            "Rotulador ON/OFF preparado."
         );
     },
 
@@ -151,7 +155,7 @@ AFRAME.registerComponent("xr-ray-marker", {
         );
 
 
-        // Configuración del rotulador
+        // Rotulador
 
         this.ctx.strokeStyle =
             "#111111";
@@ -168,7 +172,7 @@ AFRAME.registerComponent("xr-ray-marker", {
             "round";
 
 
-        // Crear textura
+        // Textura
 
         this.texture =
             new THREE.CanvasTexture(
@@ -187,8 +191,6 @@ AFRAME.registerComponent("xr-ray-marker", {
             true;
 
 
-        // Aplicar canvas a la pizarra
-
         this.boardMesh.material.map =
             this.texture;
 
@@ -203,8 +205,17 @@ AFRAME.registerComponent("xr-ray-marker", {
 
     tick: function () {
 
+        // =========================================
+        // ROTULADOR APAGADO
+        // =========================================
+
+        if (!this.markerEnabled) {
+
+            return;
+        }
+
+
         if (
-            !this.triggerPressed ||
             !this.ctx ||
             !this.texture
         ) {
@@ -214,7 +225,7 @@ AFRAME.registerComponent("xr-ray-marker", {
 
 
         // =========================================
-        // OBTENER RAYCASTER
+        // RAYCASTER
         // =========================================
 
         const raycasterComponent =
@@ -230,7 +241,7 @@ AFRAME.registerComponent("xr-ray-marker", {
 
 
         // =========================================
-        // INTERSECCIÓN CON LA PIZARRA
+        // INTERSECCIÓN
         // =========================================
 
         const intersection =
@@ -247,10 +258,6 @@ AFRAME.registerComponent("xr-ray-marker", {
         }
 
 
-        // =========================================
-        // UV DE LA INTERSECCIÓN
-        // =========================================
-
         if (!intersection.uv) {
 
             this.stopDrawing();
@@ -259,16 +266,16 @@ AFRAME.registerComponent("xr-ray-marker", {
         }
 
 
+        // =========================================
+        // UV → CANVAS
+        // =========================================
+
         const u =
             intersection.uv.x;
 
         const v =
             intersection.uv.y;
 
-
-        // =========================================
-        // UV → CANVAS
-        // =========================================
 
         const x =
             u * this.canvasWidth;
@@ -317,7 +324,6 @@ AFRAME.registerComponent("xr-ray-marker", {
 
             this.texture.needsUpdate =
                 true;
-
 
             return;
         }
