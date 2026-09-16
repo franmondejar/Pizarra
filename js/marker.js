@@ -1,33 +1,31 @@
-AFRAME.registerComponent("xr-marker", {
+AFRAME.registerComponent("xr-ray-marker", {
 
     init: function () {
 
-        // ===============================
+        // =========================================
         // ESTADO
-        // ===============================
+        // =========================================
 
-        this.markerEnabled = false;
+        this.triggerPressed = false;
         this.isDrawing = false;
-        this.touching = false;
 
         this.lastX = null;
         this.lastY = null;
 
 
-        // ===============================
+        // =========================================
         // PIZARRA
-        // ===============================
+        // =========================================
 
-        this.board = null;
+        this.board =
+            document.querySelector("#boardSurface");
+
         this.boardMesh = null;
 
-        this.boardWidth = 2.4;
-        this.boardHeight = 1.35;
 
-
-        // ===============================
+        // =========================================
         // CANVAS
-        // ===============================
+        // =========================================
 
         this.canvas = null;
         this.ctx = null;
@@ -37,84 +35,62 @@ AFRAME.registerComponent("xr-marker", {
         this.canvasHeight = 1152;
 
 
-        // ===============================
-        // ROTULADOR
-        // ===============================
-
-        this.tip = null;
-
-        this.tipWorld =
-            new THREE.Vector3();
-
-        this.localPoint =
-            new THREE.Vector3();
-
-
-        // Zona de contacto:
-        // 4 cm delante/detrás del plano
-
-        this.contactDistance = 0.04;
-
-
-        // ===============================
-        // EVENTOS
-        // ===============================
-
-        this.toggleMarker =
-            this.toggleMarker.bind(this);
+        // =========================================
+        // EVENTOS DEL GATILLO
+        // =========================================
 
         this.el.addEventListener(
             "triggerdown",
-            this.toggleMarker
+            () => {
+
+                this.triggerPressed = true;
+
+                this.setRayColor("#111111");
+
+                console.log("TRIGGER DOWN");
+            }
         );
 
-
-        // Algunos controladores/WebXR pueden
-        // entregar selectstart de forma más fiable.
 
         this.el.addEventListener(
-            "selectstart",
-            this.toggleMarker
+            "triggerup",
+            () => {
+
+                this.triggerPressed = false;
+
+                this.stopDrawing();
+
+                this.setRayColor("#808080");
+
+                console.log("TRIGGER UP");
+            }
         );
 
 
-        this.el.sceneEl.addEventListener(
-            "loaded",
-            () => this.setup()
-        );
-
-
-        // Por si la escena ya estaba cargada
+        // =========================================
+        // PREPARAR PIZARRA
+        // =========================================
 
         if (this.el.sceneEl.hasLoaded) {
 
-            this.setup();
+            this.setupBoard();
+
+        } else {
+
+            this.el.sceneEl.addEventListener(
+                "loaded",
+                () => this.setupBoard()
+            );
         }
     },
 
 
-    setup: function () {
+    setupBoard: function () {
 
-        if (this.boardMesh) {
-            return;
-        }
-
-
-        this.board =
-            document.querySelector(
-                "#boardSurface"
-            );
-
-        this.tip =
-            document.querySelector(
-                "#markerTip"
-            );
-
-
-        if (!this.board || !this.tip) {
+        if (!this.board) {
 
             console.error(
-                "No se encontró pizarra o punta."
+                "No se encontró #boardSurface"
             );
 
             return;
@@ -127,11 +103,8 @@ AFRAME.registerComponent("xr-marker", {
 
         if (!this.boardMesh) {
 
-            // A-Frame puede tardar un instante
-            // en crear el mesh.
-
             setTimeout(
-                () => this.setup(),
+                () => this.setupBoard(),
                 100
             );
 
@@ -141,8 +114,9 @@ AFRAME.registerComponent("xr-marker", {
 
         this.createCanvas();
 
+
         console.log(
-            "Pizarra V0.0.1 preparada."
+            "V0.0.2 preparada."
         );
     },
 
@@ -151,6 +125,7 @@ AFRAME.registerComponent("xr-marker", {
 
         this.canvas =
             document.createElement("canvas");
+
 
         this.canvas.width =
             this.canvasWidth;
@@ -176,9 +151,12 @@ AFRAME.registerComponent("xr-marker", {
         );
 
 
-        // Rotulador negro
+        // Configuración del rotulador
 
         this.ctx.strokeStyle =
+            "#111111";
+
+        this.ctx.fillStyle =
             "#111111";
 
         this.ctx.lineWidth = 8;
@@ -190,7 +168,7 @@ AFRAME.registerComponent("xr-marker", {
             "round";
 
 
-        // Textura
+        // Crear textura
 
         this.texture =
             new THREE.CanvasTexture(
@@ -209,6 +187,8 @@ AFRAME.registerComponent("xr-marker", {
             true;
 
 
+        // Aplicar canvas a la pizarra
+
         this.boardMesh.material.map =
             this.texture;
 
@@ -221,167 +201,27 @@ AFRAME.registerComponent("xr-marker", {
     },
 
 
-    toggleMarker: function (event) {
-
-        // Evita doble activación si Quest
-        // dispara triggerdown y selectstart
-        // prácticamente simultáneamente.
-
-        const now =
-            performance.now();
-
-
-        if (
-            this.lastToggle &&
-            now - this.lastToggle < 250
-        ) {
-            return;
-        }
-
-
-        this.lastToggle = now;
-
-
-        this.markerEnabled =
-            !this.markerEnabled;
-
-
-        this.stopDrawing();
-
-        this.updateTipColor();
-
-
-        console.log(
-            "ROTULADOR",
-            this.markerEnabled
-                ? "ON"
-                : "OFF"
-        );
-    },
-
-
-    updateTipColor: function () {
-
-        if (!this.tip) {
-            return;
-        }
-
-
-        let color = "#808080";
-
-
-        // OFF = gris
-
-        if (this.markerEnabled) {
-
-            // ON = negro
-
-            color = "#111111";
-        }
-
-
-        if (
-            this.markerEnabled &&
-            this.touching
-        ) {
-
-            // CONTACTO = rojo
-
-            color = "#FF0000";
-        }
-
-
-        this.tip.setAttribute(
-            "color",
-            color
-        );
-    },
-
-
     tick: function () {
 
         if (
-            !this.boardMesh ||
-            !this.tip ||
-            !this.ctx
+            !this.triggerPressed ||
+            !this.ctx ||
+            !this.texture
         ) {
+
             return;
         }
 
 
-        // ===============================
-        // POSICIÓN REAL DE LA PUNTA
-        // ===============================
+        // =========================================
+        // OBTENER RAYCASTER
+        // =========================================
 
-        this.tip.object3D.getWorldPosition(
-            this.tipWorld
-        );
-
-
-        // Convertimos esa posición mundial
-        // al espacio local de la pizarra.
-
-        this.localPoint.copy(
-            this.tipWorld
-        );
+        const raycasterComponent =
+            this.el.components.raycaster;
 
 
-        this.boardMesh.worldToLocal(
-            this.localPoint
-        );
-
-
-        const halfWidth =
-            this.boardWidth / 2;
-
-        const halfHeight =
-            this.boardHeight / 2;
-
-
-        // ===============================
-        // ¿ESTÁ DENTRO DE LA PIZARRA?
-        // ===============================
-
-        const insideX =
-            this.localPoint.x >= -halfWidth &&
-            this.localPoint.x <= halfWidth;
-
-
-        const insideY =
-            this.localPoint.y >= -halfHeight &&
-            this.localPoint.y <= halfHeight;
-
-
-        const closeToSurface =
-            Math.abs(
-                this.localPoint.z
-            ) <= this.contactDistance;
-
-
-        const wasTouching =
-            this.touching;
-
-
-        this.touching =
-            insideX &&
-            insideY &&
-            closeToSurface;
-
-
-        if (
-            wasTouching !==
-            this.touching
-        ) {
-
-            this.updateTipColor();
-        }
-
-
-        // ===============================
-        // NO ESCRIBIR SI ESTÁ OFF
-        // ===============================
-
-        if (!this.markerEnabled) {
+        if (!raycasterComponent) {
 
             this.stopDrawing();
 
@@ -389,11 +229,17 @@ AFRAME.registerComponent("xr-marker", {
         }
 
 
-        // ===============================
-        // NO HAY CONTACTO
-        // ===============================
+        // =========================================
+        // INTERSECCIÓN CON LA PIZARRA
+        // =========================================
 
-        if (!this.touching) {
+        const intersection =
+            raycasterComponent.getIntersection(
+                this.board
+            );
+
+
+        if (!intersection) {
 
             this.stopDrawing();
 
@@ -401,37 +247,41 @@ AFRAME.registerComponent("xr-marker", {
         }
 
 
-        // ===============================
-        // PIZARRA → CANVAS
-        // ===============================
+        // =========================================
+        // UV DE LA INTERSECCIÓN
+        // =========================================
+
+        if (!intersection.uv) {
+
+            this.stopDrawing();
+
+            return;
+        }
+
 
         const u =
-            (
-                this.localPoint.x +
-                halfWidth
-            )
-            /
-            this.boardWidth;
-
+            intersection.uv.x;
 
         const v =
-            (
-                this.localPoint.y +
-                halfHeight
-            )
-            /
-            this.boardHeight;
+            intersection.uv.y;
 
+
+        // =========================================
+        // UV → CANVAS
+        // =========================================
 
         const x =
-            u *
-            this.canvasWidth;
+            u * this.canvasWidth;
 
 
         const y =
             (1 - v) *
             this.canvasHeight;
 
+
+        // =========================================
+        // DIBUJAR
+        // =========================================
 
         this.draw(
             x,
@@ -442,7 +292,7 @@ AFRAME.registerComponent("xr-marker", {
 
     draw: function (x, y) {
 
-        // Primer punto del trazo
+        // Primer punto
 
         if (!this.isDrawing) {
 
@@ -451,9 +301,6 @@ AFRAME.registerComponent("xr-marker", {
             this.lastX = x;
             this.lastY = y;
 
-
-            // Dibujamos también un punto.
-            // Así un simple toque deja marca.
 
             this.ctx.beginPath();
 
@@ -465,13 +312,12 @@ AFRAME.registerComponent("xr-marker", {
                 Math.PI * 2
             );
 
-            this.ctx.fillStyle =
-                "#111111";
-
             this.ctx.fill();
+
 
             this.texture.needsUpdate =
                 true;
+
 
             return;
         }
@@ -481,15 +327,18 @@ AFRAME.registerComponent("xr-marker", {
 
         this.ctx.beginPath();
 
+
         this.ctx.moveTo(
             this.lastX,
             this.lastY
         );
 
+
         this.ctx.lineTo(
             x,
             y
         );
+
 
         this.ctx.stroke();
 
@@ -509,6 +358,16 @@ AFRAME.registerComponent("xr-marker", {
 
         this.lastX = null;
         this.lastY = null;
+    },
+
+
+    setRayColor: function (color) {
+
+        this.el.setAttribute(
+            "line",
+            "color",
+            color
+        );
     }
 
 });
