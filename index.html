@@ -23,11 +23,20 @@
 <body>
 
 <a-scene
-    xr-mode-ui="enabled: true"
-    renderer="antialias: true; colorManagement: true"
+    webxr="
+        referenceSpaceType: local-floor;
+        optionalFeatures: local-floor, bounded-floor, hand-tracking;
+    "
+    xr-mode-ui="
+        enabled: true;
+        XRMode: xr;
+    "
+    renderer="
+        antialias: true;
+        colorManagement: true;
+    "
     background="color: #111827"
 >
-
     <!-- =====================================================
          PIZARRA
          ===================================================== -->
@@ -137,6 +146,36 @@
 
 
 </a-scene>
+
+
+<script>
+document.querySelector("#enterXR").addEventListener("click", async () => {
+
+    const scene = document.querySelector("a-scene");
+
+    if (!navigator.xr) {
+        alert("WebXR no está disponible en este navegador.");
+        return;
+    }
+
+    try {
+        const supported =
+            await navigator.xr.isSessionSupported("immersive-vr");
+
+        if (!supported) {
+            alert("Este dispositivo no permite immersive-vr.");
+            return;
+        }
+
+        scene.enterVR();
+
+    } catch (error) {
+        console.error(error);
+        alert("No se ha podido iniciar WebXR.");
+    }
+
+});
+</script>
 
 </body>
 </html>
