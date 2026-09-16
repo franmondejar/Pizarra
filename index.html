@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
 
@@ -9,44 +10,50 @@
                  maximum-scale=1.0, user-scalable=no"
     >
 
-    <title>Pizarra XR — Laboratorio V0.0</title>
+    <title>Pizarra — Laboratorio V0.0.1</title>
 
     <link rel="stylesheet" href="./css/styles.css">
 
-    <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
-
-    <!-- Nuestro motor de escritura -->
     <script src="./js/marker.js"></script>
 </head>
 
 <body>
 
+<button id="enterXR">
+    ENTRAR EN XR
+</button>
+
+
 <a-scene
     webxr="
         referenceSpaceType: local-floor;
-        optionalFeatures: local-floor, bounded-floor, hand-tracking;
+        optionalFeatures: local-floor, bounded-floor;
     "
+
     xr-mode-ui="
         enabled: true;
         XRMode: xr;
     "
+
     renderer="
         antialias: true;
         colorManagement: true;
     "
+
     background="color: #111827"
 >
-    <!-- =====================================================
+
+
+    <!-- ==========================================
          PIZARRA
-         ===================================================== -->
+         ========================================== -->
 
     <a-entity
         id="board"
         position="0 1.6 -1.6"
     >
 
-        <!-- Superficie blanca -->
         <a-plane
             id="boardSurface"
             width="2.4"
@@ -56,7 +63,6 @@
                 color: #FFFFFF;
                 side: double
             "
-            xr-whiteboard
         ></a-plane>
 
 
@@ -67,7 +73,7 @@
             width="2.5"
             height="0.05"
             depth="0.05"
-            color="#555555"
+            color="#444444"
         ></a-box>
 
         <a-box
@@ -75,7 +81,7 @@
             width="2.5"
             height="0.05"
             depth="0.05"
-            color="#555555"
+            color="#444444"
         ></a-box>
 
         <a-box
@@ -83,7 +89,7 @@
             width="0.05"
             height="1.4"
             depth="0.05"
-            color="#555555"
+            color="#444444"
         ></a-box>
 
         <a-box
@@ -91,56 +97,73 @@
             width="0.05"
             height="1.4"
             depth="0.05"
-            color="#555555"
+            color="#444444"
         ></a-box>
 
     </a-entity>
 
 
-    <!-- =====================================================
-         CONTROLADOR DERECHO
-         ===================================================== -->
+    <!-- ==========================================
+         CONTROLADOR / ROTULADOR DERECHO
+         ========================================== -->
 
     <a-entity
         id="rightHand"
-        hand-controls="hand: right"
+        tracked-controls="
+            hand: right;
+            controller: 0;
+        "
         xr-marker
     >
 
-        <!-- Punta del rotulador -->
+        <!-- Cuerpo del rotulador -->
+
+        <a-cylinder
+            id="markerBody"
+            position="0 0 -0.10"
+            rotation="90 0 0"
+            radius="0.012"
+            height="0.16"
+            color="#E5E7EB"
+        ></a-cylinder>
+
+
+        <!-- Punta -->
 
         <a-sphere
             id="markerTip"
-            position="0 0 -0.08"
-            radius="0.012"
-            color="#777777"
+            position="0 0 -0.19"
+            radius="0.014"
+            color="#808080"
         ></a-sphere>
 
     </a-entity>
 
 
-    <!-- =====================================================
-         CONTROLADOR IZQUIERDO
-         ===================================================== -->
+    <!-- Controlador izquierdo:
+         solo tracking, sin mano ni rayo -->
 
     <a-entity
         id="leftHand"
-        hand-controls="hand: left"
+        tracked-controls="
+            hand: left;
+            controller: 0;
+        "
     ></a-entity>
 
 
-    <!-- =====================================================
+    <!-- ==========================================
          ILUMINACIÓN
-         ===================================================== -->
+         ========================================== -->
 
     <a-light
         type="ambient"
-        intensity="0.8"
+        intensity="0.9"
     ></a-light>
 
     <a-light
         type="directional"
-        intensity="0.6"
+        intensity="0.5"
         position="1 3 2"
     ></a-light>
 
@@ -149,32 +172,56 @@
 
 
 <script>
-document.querySelector("#enterXR").addEventListener("click", async () => {
 
-    const scene = document.querySelector("a-scene");
+document
+    .querySelector("#enterXR")
+    .addEventListener("click", async () => {
 
-    if (!navigator.xr) {
-        alert("WebXR no está disponible en este navegador.");
-        return;
-    }
+        const scene =
+            document.querySelector("a-scene");
 
-    try {
-        const supported =
-            await navigator.xr.isSessionSupported("immersive-vr");
+        if (!navigator.xr) {
 
-        if (!supported) {
-            alert("Este dispositivo no permite immersive-vr.");
+            alert(
+                "WebXR no está disponible en este navegador."
+            );
+
             return;
         }
 
-        scene.enterVR();
 
-    } catch (error) {
-        console.error(error);
-        alert("No se ha podido iniciar WebXR.");
-    }
+        try {
 
-});
+            const supported =
+                await navigator.xr.isSessionSupported(
+                    "immersive-vr"
+                );
+
+
+            if (!supported) {
+
+                alert(
+                    "Este dispositivo no permite immersive-vr."
+                );
+
+                return;
+            }
+
+
+            scene.enterVR();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "No se ha podido iniciar WebXR."
+            );
+        }
+
+    });
+
 </script>
 
 </body>
